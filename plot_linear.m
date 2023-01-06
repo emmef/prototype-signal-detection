@@ -1,5 +1,5 @@
 hold_samples = 96;
-rc_coefficients = calculate_integration_coefficients(hold_samples)
+rc_coefficients = calculate_integration_coefficients(hold_samples/1.4)
 integration_order = 2
 
 # Generate impulse response to measure detection characteristics
