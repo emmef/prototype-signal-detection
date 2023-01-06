@@ -1,26 +1,29 @@
-hold_samples=5;
+hold_samples = 96;
+rc_coefficients = calculate_integration_coefficients(hold_samples)
+integration_order = 2
 
-inputs=zeros(1, hold_samples * 15);
-inputs(hold_samples*2)=1;
-#inputs(round(hold_samples*3.4))=1;
+# Generate impulse response to measure detection characteristics
 
-inputs 
+impulse = zeros(1, hold_samples * 15);
+impulse(1)=1;
 
-line_skeleton=linear_approach(inputs, hold_samples)
+impulse_skeleton = linear_approach(impulse, hold_samples);
+top = get_first_top(impulse_skeleton, rc_coefficients, integration_order, hold_samples)
 
-hm=samples_to_history_multiplier(hold_samples);
-im=1-hm;
-overshoot=calculate_overshoot_and_peak_position(hm, im, hold_samples, 1);
-integrated=integrate_multiple(line_skeleton, hm, im);
-x=1:length(inputs);
-x1=x-hold_samples;
+# Create input to test
 
-integrated *= overshoot(1);
-x2=x1 - overshoot(2);#round(x-2*hold_samples);
+inputs = impulse;
+%inputs(round(hold_samples*0.8))=0.4;
+inputs(round(hold_samples*7.3))=1;
 
-plot(x, inputs, "-", x1, line_skeleton,"-", x2, integrated);
+line_skeleton = linear_approach(inputs, hold_samples);
+smoothed = integrate(0, line_skeleton, rc_coefficients, integration_order);
 
-line_skeleton
-#integrated
-#overshoot
- 
+# Create different time-offsets to align in graph
+
+t =0:length(inputs)-1;
+t_skeleton = t - hold_samples;
+t_predicted = t - top(1);
+smoothed = smoothed / top(2);
+
+plot(t, inputs, "-",    t_skeleton, line_skeleton, "-", t_predicted, smoothed, "-");
